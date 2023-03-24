@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-// const reactionSchema = require('./Reaction');
+const reactionSchema = require('./Reaction');
 
 const thoughtSchema = new Schema(
   {
@@ -11,7 +11,6 @@ const thoughtSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now(),
-      max_length: 50,
       get: (date) => {
         if (date) return date.toISOString().split("T") [0];
       },
@@ -20,7 +19,7 @@ const thoughtSchema = new Schema(
       type: String,
       required: true,
     },
-    // reactions: [reactionSchema],
+    reactions: [reactionSchema],
   },
   {
     timestamps: true,

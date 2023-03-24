@@ -1,22 +1,24 @@
 // const { ObjectId } = require('mongoose').Types;
 const { Thought, User } = require('../models');
 
-// const headCount = async () =>
-//   Student.aggregate()
-//     .count('studentCount')
-//     .then((numberOfStudents) => numberOfStudents);
-
 module.exports = {
   // Get all thoughts
   getThoughts(req, res) {
     Thought.find()
-      .then(async (thoughts) => {
-        const thoughtObj = {
-          thoughts,
-          // headCount: await headCount(),
-        };
-        return res.json(thoughtObj);
-      })
+      .then((thoughts) => {
+        
+        const thoughtsArray = [];
+        
+        thoughts.forEach(thought => {
+          const thoughtObj = {
+            thought,
+            reactionCount: thought.reactions.length,
+          };
+          thoughtsArray.push(thoughtObj);
+        });
+        
+      res.json(thoughtsArray)})
+
       .catch((err) => {
         console.log(err);
         return res.status(500).json(err);
@@ -26,14 +28,17 @@ module.exports = {
   getSingleThought(req, res) {
     Thought.findOne({ _id: req.params.thoughtId })
       .select('-__v')
-      .then(async (thought) =>
+      .then((thought) => {
+
+        const thoughtObj = {
+          thought,
+          reactionCount: thought.reactions.length,
+        };
+
         !thought
           ? res.status(404).json({ message: 'No thought with that ID' })
-          : res.json({
-              thought,
-              // grade: await grade(req.params.studentId),
-            })
-      )
+          : res.json(thoughtObj)
+  })
       .catch((err) => {
         console.log(err);
         return res.status(500).json(err);
@@ -60,17 +65,20 @@ module.exports = {
       .catch((err) => res.status(500).json(err));
 
   },
-  // Update a user
+  // Update a thought
   updateThought(req, res) {
+
+    console.log("UPDATE THOUGHT:1");
     Thought.findOneAndUpdate(
       { _id: req.params.thoughtId },
       { $set: req.body },
       { runValidators: true, new: true }
     )
       .then((thought) =>
+      
         !thought
           ? res.status(404).json({ message: 'No thought with this id!' })
-          : res.json(user)
+          : res.json(thought)
       )
       .catch((err) => res.status(500).json(err));
   },
@@ -81,7 +89,7 @@ module.exports = {
         !thought
           ? res.status(404).json({ message: 'No such thought exists' })
           : User.findOneAndUpdate(
-              { thoughts: req.params.thoughtId },
+              { username: thought.username },
               { $pull: { thoughts: req.params.thoughtId } },
               { new: true }
             )
@@ -113,23 +121,23 @@ module.exports = {
           ? res
               .status(404)
               .json({ message: 'No thought found with that ID' })
-          : res.json(student)
+          : res.json(thought)
       )
       .catch((err) => res.status(500).json(err));
   },
   // Remove reaction from a thought
   deleteReaction(req, res) {
     Thought.findOneAndUpdate(
-      { _id: req.params.studentId },
-      { $pull: { reaction: { reactionId: req.params.reactionId } } },
+      { _id: req.params.thoughtId },
+      { $pull: { reactions: { _id : req.params.reactionId } } },
       { runValidators: true, new: true }
     )
       .then((thought) =>
-        !student
+        !thought
           ? res
               .status(404)
               .json({ message: 'No thought found with that ID' })
-          : res.json(student)
+          : res.json(thought)
       )
       .catch((err) => res.status(500).json(err));
   },
